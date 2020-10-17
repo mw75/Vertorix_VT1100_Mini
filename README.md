@@ -46,14 +46,14 @@ Follow the below instructions to run the example Arduino Sketches.
 #### Boards
 Install the Vertorix Boards into the Arduino IDE
 
-1. Open the Arduino IDE.  Select:
+1. Open the Arduino IDE.  From the menu select:
 ```sh
 File > Preferences > Additional Boards Manager URLs
 ```
 ```sh
-Paste this link: https://raw.githubusercontent.com/VertorixAU/ArduinoBoards/main/BoardManager/package_vertorix_index.json
+Paste link: https://raw.githubusercontent.com/VertorixAU/ArduinoBoards/main/BoardManager/package_vertorix_index.json
 ```
-2. From the menu select:
+2. Click OK and from the menu select:
 ```sh
 Tools > Board > Board Manager
 ```
