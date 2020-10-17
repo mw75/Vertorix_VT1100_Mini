@@ -38,7 +38,7 @@ Follow the below instructions to run the example Arduino Sketches.
 
 ### Prerequisites
 
-* Minimum of two VT1100 boards to establish a wireless network;
+* Minimum of two Vertorix boards to establish a wireless network;
 * Arduino IDE - download [here](https://www.arduino.cc/en/main/software)
 
 ### Installation
