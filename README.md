@@ -44,7 +44,7 @@ Follow the below instructions to run the example Arduino Sketches.
 ### Installation
 
 #### Boards
-Install the Vertorix Boards into the Arduino IDE
+Install the Vertorix Boards into the Arduino IDE.
 
 1. Open the Arduino IDE.  From the menu select:
 ```sh
@@ -61,7 +61,7 @@ Tools > Board > Board Manager
 4. Click on Vertorix and then click Install.
 
 #### Libraries
-Install the Vertorix Library
+Install the Vertorix Library.
 
 1. Use the menu to select:
 ```sh
