@@ -25,7 +25,7 @@ Place Logo here
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- Douments Shield -->
-[Docs-shield]: https://img.shields.io/badge/Docs-Just%20the%20Docs-blue
+[Docs-shield]: https://img.shields.io/badge/Docs-Project%20Documentation-blue
 [Docs-url]: https://vertorixau.github.io/
 <!-- License Shield -->
 [license-shield]: https://img.shields.io/github/license/VertorixAU/CC2530.svg?style=flat-square
