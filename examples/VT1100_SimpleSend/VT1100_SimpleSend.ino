@@ -10,7 +10,7 @@
 #define InitButton 2                                                  // Button on Digital Pin 2 (D2)
 
 // Library Class Instance
-CC2530 myCC2530;                                                      // Make an instance of the class from the VT1100MiniSPI Library.  A short name for referring to variables and functions from the Libraries class.
+CC2530 myCC2530;                                                      // Make an instance of the class from the Library.  A short name for referring to variables and functions from the Libraries class.
 
 // Millis timing
 int period = 10000;
@@ -44,7 +44,7 @@ void loop()
 {
   myCC2530.POLL();                                                    // Need to constantly POLL the CC2530 to see if it has any queued data to send to the application processor
 
-  if (millis() >= time_now + period)                                  // Functions runs every 10 seconds 
+  if (millis() >= time_now + period)                                  // Functions runs every 10 seconds
   {
     time_now += period;
     uint8_t SendData = 0x08;                                          // Data to send

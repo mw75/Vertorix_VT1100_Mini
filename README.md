@@ -71,13 +71,15 @@ Sketch > Include Library > Manage Libraries
 3. Find the Vertorix VT100 Library and click the install button;
 
 #### Running the Examples
+It is possible to interchange the board types, they can all join the same network.
+
 1. Open the Example Sketches from the menu:
 ```sh
 File > Examples > Select Library name > Select Example
 ```
 2. Open the **VT1100_SimpleReceive.ino** and **VT1100_SimpleSend.ino** Examples;
 3. Read through the Sketches to obtain a basic understanding of how they work;
-4. Connect the two VT1100 boards to the computer using serial to USB converters and set Digital Pin 2 (**D2**) LOW (GND) (this will Commission the CC2530 into the Network on power up).  If you have a second computer available I recommend installing the Arduino IDE on both and running the Send / Receive sketches separately.  This makes debugging easier when selecting COM ports etc.;
+4. Set Digital Pin 2 (**D2**) LOW (GND) (this will Commission the CC2530 into the Network on power up).  Connect the two VT1100 boards to the computer using serial to USB converters.  If you have a second computer available I recommend installing the Arduino IDE on both and running the Send / Receive sketches separately.  This makes debugging easier when selecting COM ports etc.;
 5. Select the correct Board, Processor and Ports then Upload the Sketches;
 ```sh
 Tools > Board > Vertorix > "VT1100 Mini SPI"
@@ -106,5 +108,5 @@ Project Link: [https://vertorixau.github.io/](https://vertorixau.github.io/)
 [Docs-shield]: https://img.shields.io/badge/Docs-Project%20Documentation-blue
 [Docs-url]: https://vertorixau.github.io/
 <!-- License Shield -->
-[license-shield]: https://img.shields.io/github/license/VertorixAU/CC2530.svg?style=flat-square
-[license-url]: https://github.com/VertorixAU/CC2530/blob/master/LICENSE
+[license-shield]: https://img.shields.io/badge/License-MIT-brightgreen
+[license-url]: https://github.com/VertorixAU/Vertorix_VT1100_Mini_SPI/blob/main/LICENSE

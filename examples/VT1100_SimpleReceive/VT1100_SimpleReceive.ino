@@ -10,7 +10,7 @@
 #define InitButton 2                                                  // Button on Digital Pin 2 (D2)
 
 // Library Class Instance
-CC2530 myCC2530;                                                      // Make an instance of the class from the VT1100MiniSPI Library.  A short name for referring to variables and functions from the Libraries class.
+CC2530 myCC2530;                                                      // Make an instance of the class from the Library.  A short name for referring to variables and functions from the Libraries class.
 
 void setup()
 {
