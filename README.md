@@ -50,8 +50,9 @@ Install the Vertorix Boards into the Arduino IDE.
 ```sh
 File > Preferences > Additional Boards Manager URLs
 ```
+Paste link:
 ```sh
-Paste link: https://raw.githubusercontent.com/VertorixAU/ArduinoBoards/main/BoardManager/package_vertorix_index.json
+https://raw.githubusercontent.com/VertorixAU/ArduinoBoards/main/BoardManager/package_vertorix_index.json
 ```
 2. Click OK and from the menu select:
 ```sh
