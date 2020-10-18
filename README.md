@@ -41,6 +41,14 @@ Follow the below instructions to run the example Arduino Sketches.
 * Minimum of two Vertorix boards to establish a wireless network;
 * Arduino IDE - download [here](https://www.arduino.cc/en/main/software)
 
+### Connections
+
+The VT1100 was made without built in USB circuitry to keep the board compact.  A separate USB to TTL Serial converter must be used to upload sketches.  This is the same method as used with the Arduino Pro Mini Boards.  There are many online tutorials for connecting USB-to-TTL Serial Converters.   
+
+USB-to-TTL Serial Converters:
+* CP2102 IC
+* FTDI FT232RL USB to serial 3.3V IC
+
 ### Installation
 
 #### Boards
