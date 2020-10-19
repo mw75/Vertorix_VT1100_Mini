@@ -43,7 +43,7 @@ Follow the below instructions to run the example Arduino Sketches.
 
 ### Connections
 
-The VT1100 was made without built in USB circuitry to keep the board compact.  A separate USB to TTL Serial converter must be used to upload sketches.  This is the same method as used with the Arduino Pro Mini Boards.  There are many online tutorials for connecting USB-to-TTL Serial Converters.   
+The VT1100 was made without built in USB to keep the board compact.  A separate USB to TTL Serial converter must be used to upload sketches.  This is the same method as used with the Arduino Pro Mini Boards.  There are many online tutorials for connecting USB-to-TTL Serial Converters.   
 
 USB-to-TTL Serial Converters:
 * CP2102 IC
