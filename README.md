@@ -49,6 +49,8 @@ USB-to-TTL Serial Converters:
 * CP2102 IC
 * FTDI FT232RL USB to serial 3.3V IC
 
+Disconnect any other power sources such as batteries from the VIN pin prior to connecting to the USB port of your computer.
+
 ### Installation
 
 #### Boards
