@@ -420,16 +420,18 @@ void CC2530::POLL()
     SPI.transfer(0x00);
     
     while (digitalRead(_SRDY) == LOW) {};                             // Wait for SRDY to go high (CC2530 has AREQ frame to send, and will set SRDY high when ready to send)
-    ReceivedBytes[0] = SPI.transfer(0x00);
-    ReceivedBytes[1] = SPI.transfer(0x00);
-    ReceivedBytes[2] = SPI.transfer(0x00);
     
-    uint8_t Len = ReceivedBytes[0];                                   // Transfer Length: The length of the Data field of the frame. The length can range from 0-250.
-    uint8_t Cmd0 = ReceivedBytes[1];                                  // Transfer Command 0: The command 0 ID of the frame.
-    uint8_t Cmd1 = ReceivedBytes[2];                                  // Transfer Command 1: The command 1 ID of the frame.
+    uint8_t Len = SPI.transfer(0x00);
+    uint8_t Cmd0 = SPI.transfer(0x00);
+    uint8_t Cmd1 = SPI.transfer(0x00);
     
     if (Len > 0)
     {
+      
+      ReceivedBytes[0] = Len;
+      ReceivedBytes[1] = Cmd0;
+      ReceivedBytes[2] = Cmd1;
+      
       for (int i = 0; i < Len; i++)
       {
         ReceivedBytes[i+3] = SPI.transfer(0x00);
@@ -466,16 +468,17 @@ void CC2530::SRSP()
 {
   DEBUG_SERIAL.println(F("SRSP"));
   
-  ReceivedBytes[0] = SPI.transfer(0x00);
-  ReceivedBytes[1] = SPI.transfer(0x00);
-  ReceivedBytes[2] = SPI.transfer(0x00);
-  
-  uint8_t Len = ReceivedBytes[0];                                     // Transfer Length: The length of the Data field of the frame. The length can range from 0-250.
-  uint8_t Cmd0 = ReceivedBytes[1];                                    // Transfer Command 0: The command 0 ID of the frame.
-  uint8_t Cmd1 = ReceivedBytes[2];                                    // Transfer Command 1: The command 1 ID of the frame.
+  uint8_t Len = SPI.transfer(0x00);
+  uint8_t Cmd0 = SPI.transfer(0x00);
+  uint8_t Cmd1 = SPI.transfer(0x00);
   
   if (Len > 0)
   {
+    
+    ReceivedBytes[0] = Len;
+    ReceivedBytes[1] = Cmd0;
+    ReceivedBytes[2] = Cmd1;
+    
     for (int i = 0; i < Len; i++)
     {
       ReceivedBytes[i+3] = SPI.transfer(0x00);
@@ -864,5 +867,43 @@ void CC2530::ZDO_STARTUP_FROM_APP()
 {
   DEBUG_SERIAL.println(F("ZDO_STARTUP_FROM_APP SREQ"));
   WRITE_DATA(_ZDOStartUpFromApp); // ZDO_STARTUP_FROM_APP
+  
+  unsigned long time_now = millis();
+  while (millis() - time_now < 60000)
+  {
+    POLL();
+    
+    if (NewData == true)
+    {
+      uint8_t Cmd0 = ReceivedBytes[1];
+      uint8_t Cmd1 = ReceivedBytes[2];
+      uint8_t State = ReceivedBytes[3];
+
+      if (Cmd0 == 0x45 && Cmd1 == 0xC0)
+      {
+        if (State == 0x06)
+        {
+          DEBUG_SERIAL.println(F("Started as End Device"));
+          break;
+        }
+        else if (State == 0x07)
+        {
+          DEBUG_SERIAL.println(F("Started as Router"));
+          break;
+        }
+        else if (State == 0x09)
+        {
+          DEBUG_SERIAL.println(F("Started as Coordinator"));
+          break;
+        }
+        else if (State == 0x10)
+        {
+          DEBUG_SERIAL.println(F("Lost parent"));
+          break;
+        }
+      }
+      NewData = false;
+    }
+  }
 }
 
