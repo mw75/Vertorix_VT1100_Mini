@@ -1,17 +1,17 @@
 /*
   MIT License
   Copyright (c) 2020 Michael Quinn
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-  
+
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-  
+
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,7 +28,7 @@
   Date: 2010-2012
   Revision: 1.4
   Availability: https://www.ti.com/tool/Z-STACK-ARCHIVE
-  
+
   Title: Z-Stack Monitor and Test API
   Author: Texas Instruments Incorporated
   Date: 2008-2015
@@ -39,43 +39,43 @@
 /*
   VT1100MiniSPI.h Library
   Created by Michael Quinn
-  
+
   Revision    Date          Descripton
   1.0         18/09/2020    First version
 */
 
 #ifndef VT1100MiniSPI_h
 	#define VT1100MiniSPI_h
-	
+
   #if ARDUINO >= 100
     #include "Arduino.h"
     #else
     #include "WProgram.h"
   #endif
 	#include "SPI.h"
-  
+
   /*
     Debug Mode
     Turn debugging off in Library to save program space.
   */
   #define DEBUG true //set to true for debug output, false for no debug output
   #define DEBUG_SERIAL if(DEBUG)Serial
-  
+
   /*
     Class
     CC2530
   */
 	class CC2530
 	{
-		public:	
-    
+		public:
+
     /*
       Global Variables
     */
     uint8_t ReceivedBytes[64];
     boolean NewData = false;
     boolean AFDataIncoming = false; // New AF_DATA_INOMING message
-    
+
     CC2530(uint8_t PIN_EN = 7, uint8_t PIN_SRDY = 8, uint8_t PIN_RES = 9, uint8_t PIN_SS_MRDY = 10, uint8_t PIN_MOSI = 11, uint8_t PIN_MISO = 12, uint8_t PIN_SCK = 13);
     void POWER_UP();
     void COMMISSION();
@@ -96,7 +96,7 @@
 		void ZDO_STARTUP_FROM_APP();
     void ZB_GET_SHORT_ADDRESS(uint8_t ShortAddr[2]);
     void ZB_GET_IEEE_ADDRESS(uint8_t IEEEAddr[8]);
-    void ZDO_MGMT_PERMIT_JOIN_REQ(bool PermitJoin = true); 
+    void ZDO_MGMT_PERMIT_JOIN_REQ(bool PermitJoin = true);
     void ZDO_END_DEVICE_BIND_REQ(uint8_t EndPoint);
     void ZDO_MGMT_LEAVE_REQ(uint8_t DstIEEEAddr[8]);
     void ZDO_NODE_DESC_REQ(uint8_t DstAddr[2], uint8_t NWKAddrOfInterest[2]);
@@ -115,14 +115,14 @@
     void SetAF_DATA_REQUEST(uint8_t DesEP = 0, uint8_t SourceEP = 0, uint8_t ClusterID0 = 0, uint8_t ClusterID1 = 0, uint8_t TransID = 0, uint8_t Options = 0, uint8_t Radius = 0);
     void SetAF_DATA_REQUEST_EXT(uint8_t DesEP = 0, uint8_t PanID0 = 0, uint8_t PanID1 = 0, uint8_t SourceEP = 0, uint8_t ClusterID0 = 0, uint8_t ClusterID1 = 0, uint8_t TransID = 0, uint8_t Options = 0, uint8_t Radius = 0);
     void SetTX_POWER(uint8_t Val = 0);
-    
+
     /*
       AF_DATA_REQUEST
       Used by the Application processor to send a message
     */
-    template <typename T> unsigned int AF_DATA_REQUEST (uint8_t ShortAddr0, uint8_t ShortAddr1, const T& Value)
+    template <typename T> unsigned int AF_DATA_REQUEST (uint8_t ShortAddr0, uint8_t ShortAddr1, const T& Value, uint8_t Length)
     {
-      uint8_t Len = sizeof Value + 10;
+      uint8_t Len = Length + 10;
       uint8_t Cmd0 = 0x24;
       uint8_t Cmd1 = 0x01;
       uint8_t DstAddr0 = ShortAddr1;
@@ -134,8 +134,8 @@
       uint8_t TransID = _AFDataReqCfg[4];
       uint8_t Options = _AFDataReqCfg[5];
       uint8_t Radius = _AFDataReqCfg[6];
-      uint8_t DataLen = sizeof Value;
-      
+      uint8_t DataLen = Length;
+
       // Make array
       uint8_t Data[13] = {Len, Cmd0, Cmd1, DstAddr0, DstAddr1, DesEP, SourceEP, ClusterID0, ClusterID1, TransID, Options, Radius, DataLen};
       DEBUG_SERIAL.println(F("AF_DATA_REQUEST SREQ"));
@@ -147,17 +147,17 @@
       {
         SPI.transfer(Data[i]);
       }
-      
+
       const uint8_t * p = (const uint8_t*) &Value; // Send Data as a stream of bytes
       unsigned int i;
-      for (i = 0; i < sizeof Value; i++)
+      for (i = 0; i < Length; i++)
       SPI.transfer(*p++);
-      
-      while (digitalRead(_SRDY) == LOW) {};    
-      SRSP();   
+
+      while (digitalRead(_SRDY) == LOW) {};
+      SRSP();
       return i;
     }
-    
+
     /*
       AF_DATA_REQUEST_EXT
       Used for sending messages using binding.
@@ -165,9 +165,9 @@
       2. Send a ZDO_END_DEVICE_BIND_REQ(uint8_t EndPoint) on the Coordinator within default 8 seconds Binding time.
       3. Send a AF_DATA_REQUEST_EXT (const T& Value) to lookup the address in the binding table
     */
-    template <typename T> unsigned int AF_DATA_REQUEST_EXT (uint8_t AddrMode, const uint8_t IEEEAddr[8], const T& Value)
+    template <typename T> unsigned int AF_DATA_REQUEST_EXT (uint8_t AddrMode, const uint8_t IEEEAddr[8], const T& Value, uint8_t Length)
     {
-      uint8_t Len = sizeof Value + 20;
+      uint8_t Len = Length + 20;
       uint8_t Cmd0 = 0x24;
       uint8_t Cmd1 = 0x02;
       uint8_t DstAddrMode = AddrMode; // Use destination mode 0x00 to lookup the address in the binding table
@@ -188,9 +188,9 @@
       uint8_t TransID = _AFDataReqExtCfg[6];
       uint8_t Options = _AFDataReqExtCfg[7];
       uint8_t Radius = _AFDataReqExtCfg[8];
-      uint8_t DataLen0 = sizeof Value;
+      uint8_t DataLen0 = Length;
       uint8_t DataLen1 = 0x00;
-      
+
       // Make array
       uint8_t Data[23] = {Len, Cmd0, Cmd1, DstAddrMode, DstAddr0, DstAddr1, DstAddr2, DstAddr3, DstAddr4, DstAddr5, DstAddr6, DstAddr7, DesEP, DstPanId0, DstPanId1, SourceEP, ClusterID0, ClusterID1, TransID, Options, Radius, DataLen0, DataLen1};
       DEBUG_SERIAL.println(F("AF_DATA_REQUEST_EXT SREQ"));
@@ -202,17 +202,17 @@
       {
         SPI.transfer(Data[i]);
       }
-      
+
       const uint8_t * p = (const uint8_t*) &Value; // Send Data as a stream of bytes
       unsigned int i;
-      for (i = 0; i < sizeof Value; i++)
+      for (i = 0; i < Length; i++)
       SPI.transfer(*p++);
-      
-      while (digitalRead(_SRDY) == LOW) {};     
+
+      while (digitalRead(_SRDY) == LOW) {};
       SRSP();
       return i;
     }
-    
+
     /*
       COPY_PAYLOAD
       Copies the payload from the AF_INCOMING_MSG to a variable
@@ -220,12 +220,12 @@
     template <typename T> unsigned int COPY_PAYLOAD (T& Value)
     {
       uint8_t *p;
-      p = ReceivedBytes;     
+      p = ReceivedBytes;
       memcpy(&Value, p + 20, sizeof( Value ) ); // AFDataIncoming Data payload always starts at byte 20 in recieve buffer "ReceivedBytes"
     }
-    
+
     private:
-    
+
     uint8_t _EN;
     uint8_t _SRDY;
     uint8_t _RES;
@@ -233,13 +233,13 @@
     uint8_t _MOSI;
     uint8_t _MISO;
     uint8_t _SCK;
-    
+
     uint8_t _SYS_Reset[4] = {0x01, 0x41, 0x00, 0x00};
     uint8_t _TXPower[4] = {0x01, 0x21, 0x14, 0x04}; // Default 4dBm
     uint8_t _NVStartUpKeep[6] = {0x03, 0x26, 0x05, 0x03, 0x01, 0x00}; // Keeps device specific and network parameters stored in non-volitile (NV) memory
     uint8_t _NVStartUpClear[6] = {0x03, 0x26, 0x05, 0x03, 0x01, 0x03}; // Clears device specific and network parameters stored in non-volitile (NV) memory
     uint8_t _PanID[7] = {0x04, 0x26, 0x05, 0x83, 0x02, 0xA1, 0x00}; // Default 0x00A1 PanId
-    uint8_t _Channel[9] = {0x06, 0x26, 0x05, 0x84, 0x04, 0x00, 0x08, 0x00, 0x00}; // Default Channel 11    
+    uint8_t _Channel[9] = {0x06, 0x26, 0x05, 0x84, 0x04, 0x00, 0x08, 0x00, 0x00}; // Default Channel 11
     uint8_t _LogicalType[6] = {0x03, 0x26, 0x05, 0x87, 0x01, 0x00}; // Default 0x00 Coordinator
     uint8_t _CallBack[6] = {0x03, 0x26, 0x05, 0x8F, 0x01, 0x01}; // Default 0x01 True
     uint8_t _PollRate[7] = {0x04, 0x26, 0x05, 0x35, 0x02, 0xD0, 0x07}; // Default 2000 milliseconds
@@ -263,5 +263,5 @@
     uint8_t _PermitJoinTrue[7] = {0x04, 0x25, 0x36, 0x00, 0x00, 0xFF, 0x00};
     uint8_t _PermitJoinFalse[7] = {0x04, 0x25, 0x36, 0x00, 0x00, 0x00, 0x00};
   };
-  
-#endif                              
+
+#endif

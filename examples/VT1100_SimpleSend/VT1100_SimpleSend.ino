@@ -47,7 +47,7 @@ void loop()
   if (millis() >= time_now + period)                                  // Functions runs every 10 seconds
   {
     time_now += period;
-    uint8_t SendData = 0x08;                                          // Data to send
-    myCC2530.AF_DATA_REQUEST(0x00, 0x00, SendData);                   // AF_DATA_REQUEST(Short Address, Short Address, Variable to send).  The coordinators address is always 0x0000.
+    uint8_t Data = 0x08;                                              // Data to send
+    myCC2530.AF_DATA_REQUEST(0x00, 0x00, Data, sizeof(Data));         // AF_DATA_REQUEST(Short Address, Short Address, Variable to send, Length).  The coordinators address is always 0x0000.
   }
 }
