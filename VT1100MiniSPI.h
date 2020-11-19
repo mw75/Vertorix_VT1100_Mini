@@ -221,7 +221,7 @@
     {
       uint8_t *p;
       p = ReceivedBytes;
-      memcpy(&Value, p + 20, sizeof( Value ) ); // AFDataIncoming Data payload always starts at byte 20 in recieve buffer "ReceivedBytes"
+      memcpy(&Value, p + 20, ReceivedBytes[19]); // AFDataIncoming Data payload always starts at byte 20 in recieve buffer "ReceivedBytes"
     }
 
     private:
