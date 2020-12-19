@@ -399,6 +399,7 @@ void CC2530::COMMISSION()
   WRITE_DATA(_CallBack); // ZCD_NV_ZDO_DIRECT_CB
   WRITE_DATA(_PreCFGKeyEnable); // ZCD_NV_PRECFGKEYEnable
   WRITE_DATA(_PreCFGKey); // ZCD_NV_PRECFGKEY
+  WRITE_DATA(_TXPower); // SYS_SET_TX_POWER
   
   // IMPORTANT! RESET again to apply POLL settings.  All NV settings are saved on RESET.  If you don't RESET after setting POLL NV settings there will be a periodic POLL every few seconds.
   SYS_RESET_REQ();
