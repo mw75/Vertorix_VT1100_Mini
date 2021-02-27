@@ -1,6 +1,6 @@
 /*
-    Example: VT1100SoilCap
-    Description: A low powered soil moisture sensor which is designed to work with Zigbee2MQTT.
+    Example: VT1100DHT11
+    Description: A low powered Temperature and Humidity sensor which is designed to work with Zigbee2MQTT.
     Please note this device is not Zigbee compliant.
 
     The device goes through the following loop sequence:
@@ -12,29 +12,13 @@
 
     File: devices.js
   {
-    zigbeeModel: ['VT1100SoilCap'],
+    zigbeeModel: ['VT1100DHT11'],
     model: 'VT1100',
     vendor: 'Vertorix',
-    description: 'Vertorix Capacitive Soil Moisture Sensor v1.2',
-    fromZigbee: [fz.soilmoisture],
+    description: 'Vertorix Temperature & Humidity Sensor',
+    fromZigbee: [fz.temperature, fz.humidity],
     toZigbee: [],
   },
-
-  File: fromZigbee.js
-     soilmoisture: {
-        cluster: 'msRelativeHumidity',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
-
-            // https://github.com/Koenkk/zigbee2mqtt/issues/798
-            // Sometimes the sensor publishes non-realistic vales, it should only publish message
-            // in the 0 - 100 range, don't produce messages beyond these values.
-            if (humidity >= 0 && humidity <= 100) {
-                return {soilmoisture: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
-            }
-        },
-    },
 */
 
 /* ------------------------------------------------------------------
@@ -44,12 +28,14 @@
 #include <VT1100MiniSPI.h>
 #include <SPI.h>
 #include "LowPower.h"
+#include <dht.h>
 
 /* ------------------------------------------------------------------
    Class Instances
    ------------------------------------------------------------------
 */
 CC2530 mycc2530;                                                      // Library VT1100MiniSPI Class Instance
+dht DHT;                                                              // ****Instance of the dht class called DHT
 
 /* ------------------------------------------------------------------
    Pins
@@ -64,6 +50,7 @@ CC2530 mycc2530;                                                      // Library
 #define PIN_SCK     13                                                // (P1_5) SPI Serial Clock
 
 #define Button      2                                                 // Commission button
+#define DHT11_PIN   3                                                 // DHT11 input pin
 
 /* ------------------------------------------------------------------
    Sleep Timer
@@ -75,38 +62,29 @@ static const uint8_t sleepcount = 8;                                  // Watchdo
    Millis - Timing
    ------------------------------------------------------------------
 */
-unsigned long period = 30000;
+//unsigned long period = 30000;
 unsigned long time_now = 0;
 
 /* ------------------------------------------------------------------
    Global Veriables
    ------------------------------------------------------------------
 */
-uint8_t seqCount = 0;                                                 // used for keeping track of message transaction sequences
-uint8_t seqNumber = 0;                                                // used for keeping track of message transaction sequences
-
-/* ------------------------------------------------------------------
-   Soil Capacitive Sensor Variables
-   ------------------------------------------------------------------
-*/
-const int AirValue = 670;                                             // Calibration value in Air
-const int WaterValue = 280;                                           // Calibration value in Water
-unsigned int soilMoistureValue = 0;                                   // Soil moisture value
-unsigned int soilmoisturepercent = 0;                                 // Soil moisture value as percentage between air and water
+uint8_t seqCount = 0;                                                 // Used for keeping track of message transaction sequences
+uint8_t seqNumber = 0;                                                // Used to match read attribute requests to read attribute responses
 
 /* ------------------------------------------------------------------
    ZCL: Read Attribute Response Commands
    ------------------------------------------------------------------
 */
-uint8_t ModelIdentifier[] = {0x05, 0x00, 0x00, 0x42, 0x0C, 0x56, 0x54, 0x31, 0x31, 0x30, 0x30, 0x53, 0x6f, 0x69, 0x6c, 0x43, 0x61, 0x70}; // Model Identifier: VT1100SoilCap
-uint8_t ManufacturerName[] = {0x04, 0x00, 0x00, 0x42, 0x08, 0x56, 0x65, 0x72, 0x74, 0x6f, 0x72, 0x69, 0x78};                              // Manufacturer Name: Vertorix
-uint8_t PowerSource[] = {0x07, 0x00, 0x00, 0x30, 0x03};                                                                                   // Power Source: Battery
-uint8_t ApplicationVersion[] = {0x01, 0x00, 0x00, 0x20, 0x01};                                                                            // Application Version
-uint8_t ZCLVersion[] = {0x00, 0x00, 0x00, 0x20, 0x01};                                                                                    // ZCL version
-uint8_t StackVersion[] = {0x02, 0x00, 0x00, 0x20, 0x02};                                                                                  // Stack version
-uint8_t HWVersion[] = {0x03, 0x00, 0x00, 0x20, 0x02};                                                                                     // Hardware version
-uint8_t Datecode[] = {0x06, 0x00, 0x00, 0x42, 0x08, 0x32, 0x30, 0x32, 0x31, 0x30, 0x32, 0x30, 0x33};                                      // Date Code
-uint8_t SoftwareBuildID[] = {0x00, 0x40, 0x00, 0x42, 0x09, 0x31, 0x32, 0x30, 0x30, 0x2d, 0x30, 0x30, 0x30, 0x31};                         // Software Build ID
+const uint8_t ModelIdentifier[] = {'V', 'T', '1', '1', '0', '0', 'D', 'H', 'T', '1', '1'};                               // Model Identifier: VT1100DHT11
+const uint8_t ManufacturerName[] = {'V', 'e', 'r', 't', 'o', 'r', 'i', 'x'};                                             // Manufacturer Name: Vertorix
+const uint8_t PowerSource = 3;                                                                                           // Power Source: 0 = Unknown, 1 = mains(single phase), 2 = mains(3 phase), 3 = battery, 4 = DC source.
+const uint8_t ApplicationVersion = 1;                                                                                    // Application Version
+const uint8_t ZCLVersion = 1;                                                                                            // ZCL version
+const uint8_t StackVersion = 2;                                                                                          // Stack version
+const uint8_t HWVersion = 1;                                                                                             // Hardware version
+const uint8_t Datecode[] = {'2', '0', '2', '1', '0', '2', '0', '3'};                                                     // Date Code
+const uint8_t SoftwareBuildID[] = {'1', '2', '0', '0', '-', '0', '0', '0', '1'};                                         // Software Build ID
 
 /********************************************************************
    Setup
@@ -140,27 +118,11 @@ void loop()
     Sensor Readings
     ------------------------------------------------------------------
   */
-  digitalWrite(PIN_EN, HIGH);                                          // Power on sensors
-  delay(2000);                                                          // stabalise for Sensor readings
-  int sum = 0;
-  for (int m = 0; m < 16; m++)
-  {
-    sum += analogRead(A0);
-  }
-  soilMoistureValue = (sum / 16);                                      // Average of 16 analogRead(A0)
-  Serial.print(F("soil value: "));
-  Serial.println(soilMoistureValue);
-  soilmoisturepercent = map(soilMoistureValue, AirValue, WaterValue, 0, 100); // Map soil moisture value as a percentage
-  if (soilMoistureValue < WaterValue)
-  {
-    soilmoisturepercent = 100;
-  }
-  else if (soilMoistureValue > AirValue)
-  {
-    soilmoisturepercent = 0;
-  }
-  Serial.print(F("soil percent: "));
-  Serial.println(soilmoisturepercent);
+  digitalWrite(PIN_EN, HIGH);                                           // Power on sensors
+
+  delay(2000);
+  int chk = DHT.read11(DHT11_PIN);                                      // Read DHT11 sensor
+  delay(1500);                                                          // Sensor needs 1.5 sec to take readings
 
   digitalWrite(PIN_EN, LOW);                                            // Power off sensors
 
@@ -169,13 +131,14 @@ void loop()
     ------------------------------------------------------------------
   */
   Poll(50);                                                             // Give time for power to stabalise before transmitting
-  ZCLFrame_ReportAttributes_Humidity();                                 // Send Humidity ZCL report attribute (this is interpreted as soil moisture in this example)
-  Poll(500);                                                            // Poll for any message acknowledgements
+  ZCLFrame_ReportAttributes_Temp();                                     // Send Temperature ZCL report attribute
+  ZCLFrame_ReportAttributes_Humidity();                                 // Send Humidity ZCL report attribute
+  Poll(500);
   /* -----------------------------------------------------------------
     Sleep
     -----------------------------------------------------------------
   */
-  Sleep();                                                              // Sleep for the time set by the Sleep Timer
+  Sleep();                                                              // Puts the Atmega328P to sleep.  The watchdog timer can sleep for max of 8 sec.  We need to loop this function every 8 seconds to continue sleeping e.g. 8*8=60sec or 8*15 = 120sec (8=sleep ~1 min or 15=sleep ~2 min)
 }
 
 
@@ -190,48 +153,48 @@ void loop()
 */
 void Init_CC2530()
 {
+  mycc2530.POWER_UP();                                                // Power up the CC2530 (wake on reset).
+  SetTXPower();
+
+  pinMode(Button, INPUT_PULLUP);
+  if (digitalRead(Button) == LOW)
   {
-    mycc2530.POWER_UP();                                                // Power up the CC2530 (wake on reset).
-    SetTXPower();
-
-    pinMode(Button, INPUT_PULLUP);
-    if (digitalRead(Button) == LOW)
-    {
-      mycc2530.COMMISSION();                                            // Clears the configuration and network state then writes the new configuration parameters to the CC2530 non-volitile (NV) memory.  This should only be run once on initial setup.
-      AF_REGISTER(0x01);                                                // Register Endpoint 1 ZCL
-      mycc2530.ZDO_STARTUP_FROM_APP();                                  // Starts the CC2530 in the network
-      Poll(5000);
-      AF_REGISTER(0x01);                                                // Register Endpoint 1 ZCL
-      mycc2530.ZDO_STARTUP_FROM_APP();                                  // Starts the CC2530 in the network
-      Poll(5000);
-      ZCLFrame_ReportAttributes();                                      // ZCL Report Model Identifier and Application Version
-      Interview(30000);
-    }
-
-    if (digitalRead(Button) == HIGH)
-    {
-      AF_REGISTER(0x01);
-      mycc2530.ZDO_STARTUP_FROM_APP();                                    // Starts the CC2530 in the network
-      Poll(5000);
-    }
-
-    NVSetPollRate0sec();                                                  // Set the poll rate to 0 (polling turned off) for maximum power saving and to stop rejoining on loss of parent.
-    NVSetPollFailRetries();                                               // Set poll failure retries to 255 to ensure a rejoin isn't started on loss of parent device.  To reduce battery drain.
+    AF_REGISTER(0x01);                                                // Register Endpoint 1 ZCL
+    mycc2530.ZDO_STARTUP_FROM_APP();                                  // Starts the CC2530 in the network
+    Poll(2000);
+    LEAVE_REQ();
+    Poll(2000);
+    
+    mycc2530.COMMISSION();                                            // Clears the configuration and network state then writes the new configuration parameters to the CC2530 non-volitile (NV) memory.  This should only be run once on initial setup.
+    AF_REGISTER(0x01);                                                // Register Endpoint 1 ZCL
+    mycc2530.ZDO_STARTUP_FROM_APP();                                  // Starts the CC2530 in the network
+    Poll(5000);
+    AF_REGISTER(0x01);                                                // Register Endpoint 1 ZCL
+    mycc2530.ZDO_STARTUP_FROM_APP();                                  // Starts the CC2530 in the network
+    Interview(30000);
   }
+
+  if (digitalRead(Button) == HIGH)
+  {
+    AF_REGISTER(0x01);
+    mycc2530.ZDO_STARTUP_FROM_APP();                                    // Starts the CC2530 in the network
+    Poll(5000);
+  }
+
+  NVSetPollRate0sec();                                                  // Set the poll rate to 0 (polling turned off) for maximum power saving and to stop rejoining on loss of parent.
+  NVSetPollFailRetries();                                               // Set poll failure retries to 255 to ensure a rejoin isn't started on loss of parent device.  To reduce battery drain.
 }
 
 /* ------------------------------------------------------------------
-   Set Poll Rate 7sec Function
+   ZDO_MGMT_LEAVE_REQ
    ------------------------------------------------------------------
 */
-void NVSetPollRate7sec()
+void LEAVE_REQ()
 {
-  uint8_t SetPollRate[] = {0x08, 0x21, 0x09, 0x35, 0x00, 0x00, 0x04, 0x58, 0x1B, 0x00, 0x00}; // SYS_OSAL_NV_WRITE Set the poll rate 7sec 0x00001B58(Needs to be less than INDIRECT_MSG_TIMEOUT of Routers)
-  uint8_t ReadPollRate[] = {0x03, 0x21, 0x08, 0x35, 0x00, 0x00}; // SYS_OSAL_NV_READ
-
-  mycc2530.WRITE_DATA(SetPollRate);
-  mycc2530.WRITE_DATA(ReadPollRate);
-  Serial.println("Poll Rate set to 7 sec, polling turned on");
+  uint8_t IEEEAddr[8];
+  mycc2530.ZB_GET_IEEE_ADDRESS(IEEEAddr);
+  uint8_t DestAddr[2] = {0xFC, 0xFF}; // Broadcast to coordinator and all Routers
+  mycc2530.ZDO_MGMT_LEAVE_REQ(DestAddr, IEEEAddr);
 }
 
 /* ------------------------------------------------------------------
@@ -240,10 +203,15 @@ void NVSetPollRate7sec()
 */
 void NVSetPollRate0sec()
 {
-  uint8_t SetPollRate[] = {0x08, 0x21, 0x09, 0x35, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00}; // SYS_OSAL_NV_WRITE Set the poll rate 7sec 0x00001B58(Needs to be less than INDIRECT_MSG_TIMEOUT of Routers)
+  uint8_t SetPollRate[] = {0x08, 0x21, 0x09, 0x35, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00}; // SYS_OSAL_NV_WRITE Set the poll rate 0sec
+  uint8_t SetQUEUED_POLL_RATE[] = {0x06, 0x21, 0x09, 0x25, 0x00, 0x00, 0x02, 0x00, 0x00}; // SYS_OSAL_NV_WRITE Set the queued poll rate 0sec
+  uint8_t SetRESPONSE_POLL_RATE[] = {0x06, 0x21, 0x09, 0x26, 0x00, 0x00, 0x02, 0x00, 0x00}; // SYS_OSAL_NV_WRITE Set the response poll rate 0sec
+
   uint8_t ReadPollRate[] = {0x03, 0x21, 0x08, 0x35, 0x00, 0x00}; // SYS_OSAL_NV_READ
 
   mycc2530.WRITE_DATA(SetPollRate);
+  mycc2530.WRITE_DATA(SetQUEUED_POLL_RATE);
+  mycc2530.WRITE_DATA(SetRESPONSE_POLL_RATE);
   Serial.println("Poll Rate set to 0 sec, polling turned off");
   mycc2530.WRITE_DATA(ReadPollRate);
 }
@@ -310,6 +278,7 @@ void Interview(unsigned long WaitTime)
       {
         ZCL_Interview();                                              // Send ZCL Read attributes response.  This is used in the zigbee2mqtt interview process.
       }
+      mycc2530.LINK_QUALITY();                                        // Function prints the Short Address and Link Quality from a received message.  The link quality is from the last Hop to the receiving device.
     }
   }
 }
@@ -347,6 +316,7 @@ void Sleep()
   pinMode(5, INPUT);
   pinMode(6, INPUT);
 
+
   delay(100);                                                           // Delay needed to stabalise after sleep and print "WAKE"
   Serial.println("~~WAKE~~");
   SPI.begin();
@@ -359,7 +329,7 @@ void Sleep()
 */
 void AF_REGISTER(uint8_t EndPoint)
 {
-  uint8_t Len = 0x0D;                                               // total length after Cmd1 excl. XOR
+  uint8_t Len = 0x0F;                                               // total length after Cmd1 excl. XOR
   uint8_t Cmd0 = 0x24;
   uint8_t Cmd1 = 0x00;
   uint8_t AppEndPoint = EndPoint;                                   // Register End Point
@@ -369,15 +339,17 @@ void AF_REGISTER(uint8_t EndPoint)
   uint8_t DeviceID1 = 0x00;
   uint8_t DeviceVer = 0x01;
   uint8_t LatencyReq = 0x00;
-  uint8_t AppNumInClusters = 0x02;
+  uint8_t AppNumInClusters = 0x03;
   uint8_t InCluster0 = 0x00;
   uint8_t InCluster1 = 0x00;
-  uint8_t InCluster2 = 0x05;
+  uint8_t InCluster2 = 0x02;
   uint8_t InCluster3 = 0x04;
+  uint8_t InCluster4 = 0x05;
+  uint8_t InCluster5 = 0x04;
   uint8_t AppNumOutClusters = 0x00;
 
   // Make array
-  uint8_t AFRegister[] = {Len, Cmd0, Cmd1, AppEndPoint, AppProfileID0, AppProfileID1, DeviceID0, DeviceID1, DeviceVer, LatencyReq, AppNumInClusters, InCluster0, InCluster1, InCluster2, InCluster3, AppNumOutClusters};
+  uint8_t AFRegister[] = {Len, Cmd0, Cmd1, AppEndPoint, AppProfileID0, AppProfileID1, DeviceID0, DeviceID1, DeviceVer, LatencyReq, AppNumInClusters, InCluster0, InCluster1, InCluster2, InCluster3, InCluster4, InCluster5, AppNumOutClusters};
 
   DEBUG_SERIAL.println(F("AF_REGISTER SREQ"));
   // SREQ
@@ -391,40 +363,6 @@ void AF_REGISTER(uint8_t EndPoint)
   while (digitalRead(PIN_SRDY) == LOW) {};
 
   mycc2530.SRSP();
-}
-
-/* ------------------------------------------------------------------
-   ZCL Report Model Identifier and Application Version
-   ------------------------------------------------------------------
-*/
-
-void ZCLFrame_ReportAttributes()
-{
-  // ZCL Header
-  uint8_t FrameControl = 0x18;                                      // Bitfield that defines the command type and other relevant information in the ZCL command
-  uint8_t SequenceNumber = 0x00;                                    // A sequence number used to correlate a ZCL command with a ZCL response.
-  uint8_t CommandID = 0x0a;                                         // CommandID: Report Attributes
-  uint8_t ZCLHeader[] = {FrameControl, SequenceNumber, CommandID};  // ZCL Header
-
-  // ZCL Payload
-  uint8_t AttributeID_ModelID[2] = {0x05, 0x00};                    // Attribute ID: Model Identifier
-  uint8_t DataType_ModelID = 0x42;                                  // Data Type: Character String
-  uint8_t Len = 0x0d;                                               // Length of string
-  uint8_t string[] = {0x56, 0x54, 0x31, 0x31, 0x30, 0x30, 0x53, 0x6f, 0x69, 0x6c, 0x43, 0x61, 0x70}; // Model Identifier: VT1100SoilCap
-
-  uint8_t AttributeID_AppVer[2] = {0x01, 0x00};                     // Attribute ID: Application Version
-  uint8_t DataType_AppVer = 0x20;                                   // Data Type: uint8_t
-  uint8_t AppVer = 0x01;                                            // Application version: 1
-  uint8_t ZCLPayload[] = {AttributeID_ModelID[0], AttributeID_ModelID[1], DataType_ModelID, Len, string[0], string[1], string[2], string[3], string[4], string[5], string[6], string[7], string[8], string[9], string[10], string[11], string[12], AttributeID_AppVer[0], AttributeID_AppVer[1], DataType_AppVer, AppVer};
-
-  // ZCL Frame
-  uint8_t ZCLFrame[sizeof(ZCLHeader) + sizeof(ZCLPayload)];
-  memcpy(ZCLFrame, ZCLHeader, sizeof(ZCLHeader));
-  memcpy(ZCLFrame + sizeof(ZCLHeader), ZCLPayload, sizeof(ZCLPayload));
-
-  // Send ZCL Frame
-  mycc2530.SetAF_DATA_REQUEST(0x01, 0x01, 0x00, 0x00, 0x00, 0x10, 0x30); // Destination EP, Source EP, ClusterID, ClusterID, Trans ID, Options, Radius
-  mycc2530.AF_DATA_REQUEST(0x00, 0x00, ZCLFrame, sizeof(ZCLFrame));      // NwkAddr, NwkAddr, Payload to Send, Length of Payload
 }
 
 /* ------------------------------------------------------------------
@@ -463,59 +401,122 @@ void ZCL_Interview()
   uint8_t ControlField = mycc2530.ReceivedBytes[20];
   seqNumber = mycc2530.ReceivedBytes[21];
   uint8_t Command = mycc2530.ReceivedBytes[22];
-  uint16_t Attribute[2];
+  uint8_t Attribute[2];
   Attribute[0] = mycc2530.ReceivedBytes[23];
   Attribute[1] = mycc2530.ReceivedBytes[24];
 
   if (Attribute[0] == 0x05 && Attribute[1] == 0x00)
   {
-    ZCLFrame_ReadAttributesResponse(ModelIdentifier, sizeof(ModelIdentifier));
+    uint8_t Status = 0x00;
+    uint8_t DataType = 0x42; // Char String
+    uint8_t Length = sizeof(ModelIdentifier);
+
+    uint8_t Payload[5 + Length] = {Attribute[0], Attribute[1], Status, DataType, Length};
+    memcpy(Payload + 5, ModelIdentifier, sizeof(ModelIdentifier));
+
+    ZCLFrame_ReadAttributesResponse(Payload, sizeof(Payload));
     mycc2530.RECV_CALLBACK();
   }
   else if (Attribute[0] == 0x04 && Attribute[1] == 0x00)
   {
-    ZCLFrame_ReadAttributesResponse(ManufacturerName, sizeof(ManufacturerName));
+    uint8_t Status = 0x00;
+    uint8_t DataType = 0x42; // Char String
+    uint8_t Length = sizeof(ManufacturerName);
+
+    uint8_t Payload[5 + Length] = {Attribute[0], Attribute[1], Status, DataType, Length};
+    memcpy(Payload + 5, ManufacturerName, sizeof(ManufacturerName));
+
+    ZCLFrame_ReadAttributesResponse(Payload, sizeof(Payload));
     mycc2530.RECV_CALLBACK();
   }
   else if (Attribute[0] == 0x07 && Attribute[1] == 0x00)
   {
-    ZCLFrame_ReadAttributesResponse(PowerSource, sizeof(PowerSource));
+    uint8_t _PowerSource[] = {0x07, 0x00, 0x00, 0x30, PowerSource};
+    ZCLFrame_ReadAttributesResponse(_PowerSource, sizeof(_PowerSource));
     mycc2530.RECV_CALLBACK();
   }
   else if (Attribute[0] == 0x01 && Attribute[1] == 0x00)
   {
-    ZCLFrame_ReadAttributesResponse(ApplicationVersion, sizeof(ApplicationVersion));
+    uint8_t _ApplicationVersion[] = {0x01, 0x00, 0x00, 0x20, ApplicationVersion};
+    ZCLFrame_ReadAttributesResponse(_ApplicationVersion, sizeof(_ApplicationVersion));
     mycc2530.RECV_CALLBACK();
   }
   else if (Attribute[0] == 0x00 && Attribute[1] == 0x00)
   {
-    ZCLFrame_ReadAttributesResponse(ZCLVersion, sizeof(ZCLVersion));
+    uint8_t _ZCLVersion[] = {0x00, 0x00, 0x00, 0x20, ZCLVersion};
+    ZCLFrame_ReadAttributesResponse(_ZCLVersion, sizeof(_ZCLVersion));
     mycc2530.RECV_CALLBACK();
   }
   else if (Attribute[0] == 0x02 && Attribute[1] == 0x00)
   {
-    ZCLFrame_ReadAttributesResponse(StackVersion, sizeof(StackVersion));
+    uint8_t _StackVersion[] = {0x02, 0x00, 0x00, 0x20, StackVersion};
+    ZCLFrame_ReadAttributesResponse(_StackVersion, sizeof(_StackVersion));
     mycc2530.RECV_CALLBACK();
   }
   else if (Attribute[0] == 0x03 && Attribute[1] == 0x00)
   {
-    ZCLFrame_ReadAttributesResponse(HWVersion, sizeof(HWVersion));
+    uint8_t _HWVersion[] = {0x03, 0x00, 0x00, 0x20, HWVersion};
+    ZCLFrame_ReadAttributesResponse(_HWVersion, sizeof(_HWVersion));
     mycc2530.RECV_CALLBACK();
   }
   else if (Attribute[0] == 0x06 && Attribute[1] == 0x00)
   {
-    ZCLFrame_ReadAttributesResponse(Datecode, sizeof(Datecode));
+    uint8_t Status = 0x00;
+    uint8_t DataType = 0x42; // Char String
+    uint8_t Length = sizeof(Datecode);
+
+    uint8_t Payload[5 + Length] = {Attribute[0], Attribute[1], Status, DataType, Length};
+    memcpy(Payload + 5, Datecode, sizeof(Datecode));
+
+    ZCLFrame_ReadAttributesResponse(Payload, sizeof(Payload));
     mycc2530.RECV_CALLBACK();
   }
   else if (Attribute[0] == 0x00 && Attribute[1] == 0x40)
   {
-    ZCLFrame_ReadAttributesResponse(SoftwareBuildID, sizeof(SoftwareBuildID));
+    uint8_t Status = 0x00;
+    uint8_t DataType = 0x42; // Char String
+    uint8_t Length = sizeof(SoftwareBuildID);
+
+    uint8_t Payload[5 + Length] = {Attribute[0], Attribute[1], Status, DataType, Length};
+    memcpy(Payload + 5, SoftwareBuildID, sizeof(SoftwareBuildID));
+
+    ZCLFrame_ReadAttributesResponse(Payload, sizeof(Payload));
     mycc2530.RECV_CALLBACK();
   }
 }
 
 /* ------------------------------------------------------------------
-   ZCL Report Humidity (Soil Moisture)
+   ZCL Report Temperature
+   ------------------------------------------------------------------
+*/
+
+void ZCLFrame_ReportAttributes_Temp()
+{
+  // ZCL Header
+  uint8_t FrameControl = 0x18;                                      // Bitfield that defines the command type and other relevant information in the ZCL command
+  uint8_t SequenceNumber = seqCount;                                // A sequence number used to correlate a ZCL command with a ZCL response.
+  seqCount++;
+  uint8_t CommandID = 0x0a;                                         // CommandID: Report Attributes
+  uint8_t ZCLHeader[] = {FrameControl, SequenceNumber, CommandID};  // ZCL Header
+
+  // ZCL Payload
+  uint8_t AttributeID_MeasuredVal[2] = {0x00, 0x00};                // Attribute ID: Measured Value
+  uint8_t DataType = 0x29;                                          // Data Type: 16 bit integer Temperature measurement
+  int Temp = DHT.temperature * 100;                                 // Temperature value
+  uint8_t ZCLPayload[] = {AttributeID_MeasuredVal[0], AttributeID_MeasuredVal[1], DataType, lowByte(Temp), highByte(Temp)}; // ZCL Payload
+
+  // ZCL Frame
+  uint8_t ZCLFrame[sizeof(ZCLHeader) + sizeof(ZCLPayload)];
+  memcpy(ZCLFrame, ZCLHeader, sizeof(ZCLHeader));
+  memcpy(ZCLFrame + sizeof(ZCLHeader), ZCLPayload, sizeof(ZCLPayload));
+
+  // Send ZCL Frame
+  mycc2530.SetAF_DATA_REQUEST(0x01, 0x01, 0x02, 0x04, 0x00, 0x00, 0x30);  // Destination EP, Source EP, ClusterID, ClusterID, Trans ID, Options, Radius
+  mycc2530.AF_DATA_REQUEST(0x00, 0x00, ZCLFrame, sizeof(ZCLFrame));       // NwkAddr, NwkAddr, Payload to Send, Length of Payload
+}
+
+/* ------------------------------------------------------------------
+   ZCL Report Humidity
    ------------------------------------------------------------------
 */
 
@@ -531,7 +532,7 @@ void ZCLFrame_ReportAttributes_Humidity()
   // ZCL Payload
   uint8_t AttributeID_MeasuredVal[2] = {0x00, 0x00};                // Attribute ID: Measured Value
   uint8_t DataType = 0x21;                                          // Data Type: 16 bit integer Humidity Measurement
-  int Humidity = soilmoisturepercent * 100;                         // Humidity value (interpreted as soil moisture in this example)
+  int Humidity = DHT.humidity * 100;                                // Humidity value
   uint8_t ZCLPayload[] = {AttributeID_MeasuredVal[0], AttributeID_MeasuredVal[1], DataType, lowByte(Humidity), highByte(Humidity)}; // ZCL Payload
 
   // ZCL Frame
