@@ -62,7 +62,7 @@ File > Preferences > Additional Boards Manager URLs
 ```
 Paste link:
 ```sh
-https://raw.githubusercontent.com/VertorixAU/ArduinoBoards/main/BoardManager/package_vertorix_index.json
+https://raw.githubusercontent.com/VertorixAU/VertorixBoards/main/BoardManager/package_vertorix_index.json
 ```
 2. Click OK and from the menu select:
 ```sh
