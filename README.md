@@ -22,7 +22,7 @@ Place Logo here
 <br/>
 
 <p align="center">
-<img src="https://github.com/VertorixAU/Vertorix_VT1100_Mini_SPI/raw/main/Images/VT1100RightSide.png" width="300" height="300">
+<img src="https://github.com/VertorixAU/Vertorix_VT1100_Mini_SPI/raw/main/Images/VT1100RightSide.png" width="500" height="500">
 
 <br/>
 
