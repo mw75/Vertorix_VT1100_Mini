@@ -31,6 +31,8 @@ Place Logo here
 
 This Repository shows you how to use the VT1100 Library with the Arduino IDE and provides example sketches.
 
+It is possible to upload the examples directly to the boards without using the Arduino IDE.  See this Repository: [ArduinoSketchUploader](https://github.com/VertorixAU/ArduinoSketchUploader)
+
 <!-- GETTING STARTED -->
 ## Getting Started
 
