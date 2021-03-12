@@ -13,7 +13,7 @@
 # VT1100 Mini SPI
 
 <!-- Introduction -->
-This is the Arduino Library for the Vertorix VT1100 Mini SPI PCB.  The Vertorix VT1100 Mini is a low powered Zigbee development board compatible with the Arduino IDE.  
+This is the Arduino Library for the Vertorix VT1100 Mini.  The Vertorix VT1100 Mini is a low powered Zigbee development board compatible with the Arduino IDE.  
 
 <!-- PROJECT LOGO -->
 <!--
