@@ -116,9 +116,7 @@ Sketch > Upload
 Distributed under the MIT License. See `LICENSE` for more information.
 
 <!-- CONTACT -->
-## Contact
 
-Project Link: [https://vertorixau.github.io/](https://vertorixau.github.io/)
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
