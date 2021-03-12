@@ -13,7 +13,7 @@
 # VT1100 Mini SPI
 
 <!-- Introduction -->
-This is the Arduino Library for the Vertorix VT1100 Mini SPI PCB.
+This is the Arduino Library for the Vertorix VT1100 Mini SPI PCB.  The Vertorix VT1100 Mini is a low powered Zigbee development board compatible with the Arduino IDE.  
 
 <!-- PROJECT LOGO -->
 <!--
@@ -29,7 +29,7 @@ Place Logo here
 <!-- MOTIVATION -->
 ## Motivation
 
-This project provides an easy method to setup low cost wireless mesh networks that can be used in Internet of Things (IOT) applications.
+This Repository shows you how to use the VT1100 Library with the Arduino IDE and provides example sketches.
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -38,7 +38,8 @@ Follow the below instructions to run the example Arduino Sketches.
 
 ### Prerequisites
 
-* Minimum of two Vertorix boards to establish a wireless network;
+* VT1100 Mini Boards;
+* USB-to-TTL Serial Converter;
 * Arduino IDE - download [here](https://www.arduino.cc/en/main/software)
 
 ### Connections
@@ -51,9 +52,8 @@ USB-to-TTL Serial Converters:
 
 Disconnect any other power sources such as batteries from the VIN pin prior to connecting to the USB port of your computer.
 
-### Installation
+### Board Installation in Arduino IDE
 
-#### Boards
 Install the Vertorix Boards into the Arduino IDE.
 
 1. Open the Arduino IDE.  From the menu select:
@@ -71,7 +71,12 @@ Tools > Board > Board Manager
 3. Use the search bar at the top to search for **Vertorix**;
 4. Click on Vertorix and then click Install.
 
-#### Libraries
+### Libraries
+#### Manual Installation
+1. Copy the library **VT1100MiniSPI.h** and **VT1100MiniSPI.cpp** to your Arduino "libraries" folder;
+2. Run the example sketches in the Arduino IDE.
+
+#### Arduino IDE Installation
 Install the Vertorix Library.
 
 1. Use the menu to select:
@@ -81,7 +86,7 @@ Sketch > Include Library > Manage Libraries
 2. Use the search bar at the top to search for **Vertorix**;
 3. Find the Vertorix VT100 Library and click the install button;
 
-#### Running the Examples
+### Running the Examples
 It is possible to interchange the board types, they can all join the same network.
 
 1. Open the Example Sketches from the menu:
@@ -90,7 +95,7 @@ File > Examples > Select Library name > Select Example
 ```
 2. Open the **VT1100_SimpleReceive.ino** and **VT1100_SimpleSend.ino** Examples;
 3. Read through the Sketches to obtain a basic understanding of how they work;
-4. Set Digital Pin 2 (**D2**) LOW (GND) (this will Commission the CC2530 into the Network on power up).  Connect the two VT1100 boards to the computer using serial to USB converters.  If you have a second computer available I recommend installing the Arduino IDE on both and running the Send / Receive sketches separately.  This makes debugging easier when selecting COM ports etc.;
+4. Set Digital Pin 2 (**D2**) LOW (GND) (this will Commission the CC2530 into the Network on power up).  Connect the two VT1100 boards to the computer using serial to USB converters.
 5. Select the correct Board, Processor and Ports then Upload the Sketches;
 ```sh
 Tools > Board > Vertorix > "VT1100 Mini SPI"
