@@ -38,7 +38,7 @@ Follow the below instructions to run the example Arduino Sketches.
 
 ### Prerequisites
 
-* VT1100 Mini Boards;
+* VT1100 Mini;
 * USB-to-TTL Serial Converter;
 * Arduino IDE - download [here](https://www.arduino.cc/en/main/software)
 
@@ -72,12 +72,13 @@ Tools > Board > Board Manager
 4. Click on Vertorix and then click Install.
 
 ### Libraries
-#### Manual Installation
-1. Copy the library **VT1100MiniSPI.h** and **VT1100MiniSPI.cpp** to your Arduino "libraries" folder;
+
+#### Manually Install Libraries
+
+1. Copy the library **VT1100MiniSPI.h** and **VT1100MiniSPI.cpp** files to your Arduino "libraries" folder;
 2. Run the example sketches in the Arduino IDE.
 
-#### Arduino IDE Installation
-Install the Vertorix Library.
+#### Arduino IDE Library Installation
 
 1. Use the menu to select:
 ```sh
@@ -87,7 +88,6 @@ Sketch > Include Library > Manage Libraries
 3. Find the Vertorix VT100 Library and click the install button;
 
 ### Running the Examples
-It is possible to interchange the board types, they can all join the same network.
 
 1. Open the Example Sketches from the menu:
 ```sh
