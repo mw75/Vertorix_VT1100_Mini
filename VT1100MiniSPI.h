@@ -83,7 +83,9 @@
 		void HARD_RESET_REQ();
     void SYS_RESET_REQ();
 		void POLL();
+		void EMPTY_BUFFER();
 		void SRSP();
+		boolean NEW_DATA();
     boolean AF_INCOMING_MSG();
     void RECV_CALLBACK();
     void LINK_QUALITY();
