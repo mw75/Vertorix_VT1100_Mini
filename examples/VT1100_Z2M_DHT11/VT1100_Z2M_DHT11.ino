@@ -56,7 +56,7 @@ dht DHT;                                                              // ****Ins
    Sleep Timer
    ------------------------------------------------------------------
 */
-static const uint8_t sleepcount = 8;                                  // Watchdog timer can sleep for max of 8 sec.  Uses a for loop.  8*8=60sec or 8*15 = 120sec (8=sleep ~1 min or 15=sleep ~2 min)
+static uint8_t sleepcount = 8;                                  // Watchdog timer can sleep for max of 8 sec.  Uses a for loop.  8*8=60sec or 8*15 = 120sec (8=sleep ~1 min or 15=sleep ~2 min)
 
 /* ------------------------------------------------------------------
    Millis - Timing
@@ -138,6 +138,16 @@ void loop()
     Sleep
     -----------------------------------------------------------------
   */
+  if (AF_DATA_CONFIRM())
+  {
+    Serial.println("AF_DATA_CONFIRM True, Normal Sleep Time");
+    sleepcount = 8;                                                     // Sleep for approximately 60sec
+  }
+  else
+  {
+    Serial.println("AF_DATA_CONFIRM False, Extended Sleep Time");
+    sleepcount = 113;                                                   // Sleep for approximately 15min.  After 255 failed retries the CC2530 will try and rejoin which causes battery drain.  Increase the time before this mechanism is activated to ensure battery conservation.
+  }
   Sleep();                                                              // Puts the Atmega328P to sleep.  The watchdog timer can sleep for max of 8 sec.  We need to loop this function every 8 seconds to continue sleeping e.g. 8*8=60sec or 8*15 = 120sec (8=sleep ~1 min or 15=sleep ~2 min)
 }
 
@@ -164,7 +174,7 @@ void Init_CC2530()
     Poll(2000);
     LEAVE_REQ();
     Poll(2000);
-    
+
     mycc2530.COMMISSION();                                            // Clears the configuration and network state then writes the new configuration parameters to the CC2530 non-volitile (NV) memory.  This should only be run once on initial setup.
     AF_REGISTER(0x01);                                                // Register Endpoint 1 ZCL
     mycc2530.ZDO_STARTUP_FROM_APP();                                  // Starts the CC2530 in the network
@@ -321,6 +331,33 @@ void Sleep()
   Serial.println("~~WAKE~~");
   SPI.begin();
   delay(100);                                                           // Delay needed after SPI begin to ensure POLL command can use SPI
+}
+
+/* ------------------------------------------------------------------
+   Receive AF_DATA_CONFIRM
+   ------------------------------------------------------------------
+*/
+bool AF_DATA_CONFIRM()
+{
+  if (mycc2530.NEW_DATA())
+  {
+    uint8_t Cmd[2];
+    Cmd[0] = mycc2530.ReceivedBytes[1];
+    Cmd[1] = mycc2530.ReceivedBytes[2];
+
+    if (Cmd[0] == 0x44 && Cmd[1] == 0x80)
+    {
+      uint8_t Status = mycc2530.ReceivedBytes[3];
+      uint8_t Endpoint = mycc2530.ReceivedBytes[4];
+      uint8_t TransID = mycc2530.ReceivedBytes[5];
+
+      if (Status == 0)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 /* ------------------------------------------------------------------
