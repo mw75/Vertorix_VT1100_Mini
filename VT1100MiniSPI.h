@@ -100,7 +100,7 @@
     void ZB_GET_IEEE_ADDRESS(uint8_t IEEEAddr[8]);
     void ZDO_MGMT_PERMIT_JOIN_REQ(bool PermitJoin = true);
     void ZDO_END_DEVICE_BIND_REQ(uint8_t EndPoint);
-    void ZDO_MGMT_LEAVE_REQ(uint8_t DstIEEEAddr[8]);
+    void ZDO_MGMT_LEAVE_REQ(uint8_t DstAddr[2], uint8_t IEEEAddr[8]);
     void ZDO_NODE_DESC_REQ(uint8_t DstAddr[2], uint8_t NWKAddrOfInterest[2]);
     uint16_t cmd_conv(uint8_t Cmd0, uint8_t Cmd1);
     void SetPANID(uint16_t Val = 0);

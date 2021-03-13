@@ -687,17 +687,15 @@ void CC2530::ZDO_MGMT_PERMIT_JOIN_REQ(bool PermitJoin)
   ZDO_MGMT_LEAVE_REQ
   Description: Sent from the Coordinator to make a device leave the network
 */
-void CC2530::ZDO_MGMT_LEAVE_REQ(uint8_t IEEEAddr[8])
+void CC2530::ZDO_MGMT_LEAVE_REQ(uint8_t DstAddr[2], uint8_t IEEEAddr[8])
 {
   uint8_t Len = 0x0B;
   uint8_t Cmd0 = 0x25;
   uint8_t Cmd1 = 0x34;
-  uint8_t DstAddr0 = 0x00;
-  uint8_t DstAddr1 = 0x00;
   uint8_t Rejoin = 0x00;
 
   // Make array
-  uint8_t LeaveReq[24] = {Len, Cmd0, Cmd1, DstAddr0, DstAddr1, IEEEAddr[0], IEEEAddr[1], IEEEAddr[2], IEEEAddr[3], IEEEAddr[4], IEEEAddr[5], IEEEAddr[6], IEEEAddr[7], Rejoin};
+  uint8_t LeaveReq[24] = {Len, Cmd0, Cmd1, DstAddr[0], DstAddr[1], IEEEAddr[0], IEEEAddr[1], IEEEAddr[2], IEEEAddr[3], IEEEAddr[4], IEEEAddr[5], IEEEAddr[6], IEEEAddr[7], Rejoin};
 
   DEBUG_SERIAL.println(F("ZDO_MGMT_LEAVE_REQ"));
   // SREQ
