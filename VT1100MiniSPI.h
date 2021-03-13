@@ -73,7 +73,7 @@
       Global Variables
     */
 		const uint8_t NumBytes = 64;
-		uint8_t ReceivedBytes[NumBytes];
+		uint8_t ReceivedBytes[64];
     boolean NewData = false;
     boolean AFDataIncoming = false; // New AF_DATA_INOMING message
 
