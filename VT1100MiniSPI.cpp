@@ -1,17 +1,17 @@
 /*
   MIT License
   Copyright (c) 2020 Michael Quinn
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-  
+
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-  
+
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,7 +28,7 @@
   Date: 2010-2012
   Revision: 1.4
   Availability: https://www.ti.com/tool/Z-STACK-ARCHIVE
-  
+
   Title: Z-Stack Monitor and Test API
   Author: Texas Instruments Incorporated
   Date: 2008-2015
@@ -39,7 +39,7 @@
 /*
   VT1100MiniSPI.cpp Library
   Created by Michael Quinn
-  
+
   Revision    Date          Descripton
   1.0         18/09/2020    First version
 */
@@ -71,10 +71,10 @@ CC2530::CC2530(uint8_t PIN_EN, uint8_t PIN_SRDY, uint8_t PIN_RES, uint8_t PIN_SS
   pinMode(PIN_SRDY, INPUT);
   pinMode(PIN_RES, OUTPUT);
   pinMode(PIN_EN, OUTPUT);
-  
+
   digitalWrite(PIN_EN, LOW);
-  digitalWrite(PIN_RES, LOW); // Hold in RESET 
-  
+  digitalWrite(PIN_RES, LOW); // Hold in RESET
+
   _EN = PIN_EN;
   _SRDY = PIN_SRDY;
   _RES = PIN_RES;
@@ -304,7 +304,7 @@ void CC2530::SetPRECFGKEY(uint8_t a, uint8_t b, uint8_t c, uint8_t d, uint8_t e,
   Set parameters for AF_DATA_REQUEST
   Description: Set the parameters for sending a AF_DATA_REQUEST
   Valid Values: Refer to Z-Stack ZNP Interface Specification
-  Default Values: 
+  Default Values:
   DesEP       0x01
   SourceEP    0x01
   ClusterID0  0xB0
@@ -328,7 +328,7 @@ void CC2530::SetAF_DATA_REQUEST(uint8_t DesEP, uint8_t SourceEP, uint8_t Cluster
   Set parameters for AF_DATA_REQUEST_EXT
   Description: Set the parameters for sending a AF_DATA_REQUEST_EXT
   Valid Values: Refer to Z-Stack ZNP Interface Specification
-  Default Values: 
+  Default Values:
   DesEP       0x01
   PanID0      0xA1
   PanID1      0x00
@@ -372,21 +372,21 @@ void CC2530::POWER_UP()
   pinMode(_RES, INPUT_PULLUP); // Wake on RESET
   digitalWrite(_SS_MRDY, HIGH);
   delay(4000); // Need Delay after reset for CC2530 to startup
-  
+
   RECV_CALLBACK();
 }
 
 /*
   Commission the E18-MS1
-  Description: Clears the network state and configuration parameters then writes the new configuration parameters to non volatile memory.  This function should only be run once when joining a network. 
+  Description: Clears the network state and configuration parameters then writes the new configuration parameters to non volatile memory.  This function should only be run once when joining a network.
 */
 void CC2530::COMMISSION()
 {
   WRITE_DATA(_NVStartUpClear); // ZCD_NV_STARTUP_OPTION_CLEAR
-  
+
   // RESET
   SYS_RESET_REQ();
-  
+
   WRITE_DATA(_NVStartUpKeep); // ZCD_NV_STARTUP_OPTION_KEEP
   WRITE_DATA(_LogicalType); // ZCD_NV_LogicalType
   WRITE_DATA(_PanID); // ZCD_NV_PanID
@@ -400,7 +400,7 @@ void CC2530::COMMISSION()
   WRITE_DATA(_PreCFGKeyEnable); // ZCD_NV_PRECFGKEYEnable
   WRITE_DATA(_PreCFGKey); // ZCD_NV_PRECFGKEY
   WRITE_DATA(_TXPower); // SYS_SET_TX_POWER
-  
+
   // IMPORTANT! RESET again to apply POLL settings.  All NV settings are saved on RESET.  If you don't RESET after setting POLL NV settings there will be a periodic POLL every few seconds.
   SYS_RESET_REQ();
 }
@@ -419,20 +419,20 @@ void CC2530::POLL()
     SPI.transfer(0x00);                                               // POLL message: Send three zero's to CC2530 (Length = 0, Cmd0 = 0 & Cmd1 = 0)
     SPI.transfer(0x00);
     SPI.transfer(0x00);
-    
+
     while (digitalRead(_SRDY) == LOW) {};                             // Wait for SRDY to go high (CC2530 has AREQ frame to send, and will set SRDY high when ready to send)
-    
+
     uint8_t Len = SPI.transfer(0x00);
     uint8_t Cmd0 = SPI.transfer(0x00);
     uint8_t Cmd1 = SPI.transfer(0x00);
-    
+
     if (Len > 0)
     {
-      
+
       ReceivedBytes[0] = Len;
       ReceivedBytes[1] = Cmd0;
       ReceivedBytes[2] = Cmd1;
-      
+
       for (int i = 0; i < Len; i++)
       {
         ReceivedBytes[i+3] = SPI.transfer(0x00);
@@ -468,18 +468,18 @@ void CC2530::POLL()
 void CC2530::SRSP()
 {
   DEBUG_SERIAL.println(F("SRSP"));
-  
+
   uint8_t Len = SPI.transfer(0x00);
   uint8_t Cmd0 = SPI.transfer(0x00);
   uint8_t Cmd1 = SPI.transfer(0x00);
-  
+
   if (Len > 0)
   {
-    
+
     ReceivedBytes[0] = Len;
     ReceivedBytes[1] = Cmd0;
     ReceivedBytes[2] = Cmd1;
-    
+
     for (int i = 0; i < Len; i++)
     {
       ReceivedBytes[i+3] = SPI.transfer(0x00);
@@ -500,6 +500,31 @@ void CC2530::SRSP()
   }
   SPI.endTransaction();
   digitalWrite(_SS_MRDY, HIGH);                                       // At the end of a POLL set MRDY = HIGH.  SRDY will also remain HIGH, until the CC2530 has another queued message to send.
+}
+
+/*
+  Empty the Receive Buffer
+*/
+void CC2530::EMPTY_BUFFER()
+{
+  for (uint8_t n = 0; n < NumBytes; n++)
+  {
+    ReceivedBytes[n] = 0;
+  }
+}
+
+/*
+  NEW_DATA
+  Description: Function returns true when an NewData is received for processing in the main sketch
+*/
+boolean CC2530::NEW_DATA()
+{
+  if (NewData == true)
+  {
+    NewData = false;
+    return 1;
+  }
+  return 0;
 }
 
 /*
@@ -543,14 +568,14 @@ void CC2530::LINK_QUALITY()
   uint8_t ShortAddr0 = ReceivedBytes[Len];
   uint8_t ShortAddr1 = ReceivedBytes[(Len + 1)];
   uint8_t LQI = ReceivedBytes[12];
-  
+
   DEBUG_SERIAL.print(F("Short Address: "));
   DEBUG_SERIAL.print(ShortAddr0, HEX);
   DEBUG_SERIAL.print(F(" "));
   DEBUG_SERIAL.print(ShortAddr1, HEX);
   DEBUG_SERIAL.print(F(" "));
   DEBUG_SERIAL.print(F("LQI: "));
-  DEBUG_SERIAL.println(LQI, DEC); 
+  DEBUG_SERIAL.println(LQI, DEC);
 }
 
 /*
@@ -592,21 +617,21 @@ void CC2530::WRITE_DATA(uint8_t *Data)
   DEBUG_SERIAL.println(F(""));
   DEBUG_SERIAL.print(F("0x"));
   DEBUG_SERIAL.println(Data[3],HEX);
-  
+
   uint8_t Len = Data[0]+3;
-  
+
   // SREQ
   digitalWrite(_SS_MRDY, LOW);
   while (digitalRead(_SRDY) == HIGH) {};
   SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
-  
+
   for (int i = 0; i < Len; i++)
   {
-    SPI.transfer(Data[i]);  
+    SPI.transfer(Data[i]);
   }
-  
+
   while (digitalRead(_SRDY) == LOW) {};
-  
+
   SRSP();
 }
 
@@ -670,10 +695,10 @@ void CC2530::ZDO_MGMT_LEAVE_REQ(uint8_t IEEEAddr[8])
   uint8_t DstAddr0 = 0x00;
   uint8_t DstAddr1 = 0x00;
   uint8_t Rejoin = 0x00;
-  
+
   // Make array
   uint8_t LeaveReq[24] = {Len, Cmd0, Cmd1, DstAddr0, DstAddr1, IEEEAddr[0], IEEEAddr[1], IEEEAddr[2], IEEEAddr[3], IEEEAddr[4], IEEEAddr[5], IEEEAddr[6], IEEEAddr[7], Rejoin};
-  
+
   DEBUG_SERIAL.println(F("ZDO_MGMT_LEAVE_REQ"));
   // SREQ
   digitalWrite(_SS_MRDY, LOW);
@@ -684,14 +709,14 @@ void CC2530::ZDO_MGMT_LEAVE_REQ(uint8_t IEEEAddr[8])
     SPI.transfer(LeaveReq[i]);
   }
   while (digitalRead(_SRDY) == LOW) {};
-  
+
   SRSP();
 }
 
 /*
   ZDO_END_DEVICE_BIND_REQ
   Description: Used for binding two devices together for sending and recieving messages without knowing their network addressess
-  Method: 
+  Method:
   1. Send a ZDO_END_DEVICE_BIND_REQ(uint8_t EndPoint) on a End Device;
   2. Send a ZDO_END_DEVICE_BIND_REQ(uint8_t EndPoint) on the Coordinator within the default 8 seconds Binding time.
   3. Send a AF_DATA_REQUEST_EXT (const T& Value) to destination mode 0x00 and it will automatically lookup the address in the binding table
@@ -716,10 +741,10 @@ void CC2530::ZDO_END_DEVICE_BIND_REQ (uint8_t EndPoint)
   uint8_t AppNumOutClusters = 0x01;
   uint8_t OutCluster0 = 0xB0;
   uint8_t OutCluster1 = 0xFE;
-  
+
   // Make array
   uint8_t ZDOEndDeviceBind[24] = {Len, Cmd0, Cmd1, DstAddr0, DstAddr1, ShortAddr[0], ShortAddr[1], IEEEAddr[0], IEEEAddr[1], IEEEAddr[2], IEEEAddr[3], IEEEAddr[4], IEEEAddr[5], IEEEAddr[6], IEEEAddr[7], Endpoint, ProfileID0, ProfileID1, AppNumInClusters, InCluster0, InCluster1, AppNumOutClusters, OutCluster0, OutCluster1};
-  
+
   DEBUG_SERIAL.println(F("ZDO_END_DEVICE_BIND_REQ"));
   // SREQ
   digitalWrite(_SS_MRDY, LOW);
@@ -730,7 +755,7 @@ void CC2530::ZDO_END_DEVICE_BIND_REQ (uint8_t EndPoint)
     SPI.transfer(ZDOEndDeviceBind[i]);
   }
   while (digitalRead(_SRDY) == LOW) {};
-  
+
   SRSP();
 }
 
@@ -751,9 +776,9 @@ void CC2530::ZDO_NODE_DESC_REQ(uint8_t DstAddr[2], uint8_t NWKAddrOfInterest[2])
 /*
   SYS_GPIO
   Description: Used by the application processor to configure the GPIO pins on the E18-MS1.  The four Lower Order Bits are used for selecting GPIO's.
-  Valid Values: 0x01, 0x02, 0x04, 0x08, 0x00 or 0x0F.  
+  Valid Values: 0x01, 0x02, 0x04, 0x08, 0x00 or 0x0F.
   Default Value: 0x0F
-  
+
   Pin ID,   Hex value,  Pin Name,   Byte value
   P0.0,     0x01,       GPIO0,      00000001
   P0.1,     0x02,       GPIO1,      00000010
@@ -761,7 +786,7 @@ void CC2530::ZDO_NODE_DESC_REQ(uint8_t DstAddr[2], uint8_t NWKAddrOfInterest[2])
   P1.0,     0x08,       GPIO3,      00001000
   All,      0x0F,       ALL PINS,   00001111
   None,     0x00,       ALL PINS,   00000000
-  
+
 */
 
 /*
@@ -841,11 +866,11 @@ void CC2530::AF_REGISTER(uint8_t EndPoint)
   uint8_t AppNumOutClusters = 0x01;
   uint8_t OutCluster0 = 0xB0;
   uint8_t OutCluster1 = 0xFE;
-  
-  
+
+
   // Make array
   uint8_t AFRegister[16] = {Len, Cmd0, Cmd1, AppEndPoint, AppProfileID0, AppProfileID1, DeviceID0, DeviceID1, DeviceVer, LatencyReq, AppNumInClusters, InCluster0, InCluster1, AppNumOutClusters, OutCluster0, OutCluster1};
-  
+
   DEBUG_SERIAL.println(F("AF_REGISTER SREQ"));
   // SREQ
   digitalWrite(_SS_MRDY, LOW);
@@ -856,7 +881,7 @@ void CC2530::AF_REGISTER(uint8_t EndPoint)
     SPI.transfer(AFRegister[i]);
   }
   while (digitalRead(_SRDY) == LOW) {};
-  
+
   SRSP();
 }
 
@@ -868,12 +893,12 @@ void CC2530::ZDO_STARTUP_FROM_APP()
 {
   DEBUG_SERIAL.println(F("ZDO_STARTUP_FROM_APP SREQ"));
   WRITE_DATA(_ZDOStartUpFromApp); // ZDO_STARTUP_FROM_APP
-  
+
   unsigned long time_now = millis();
   while (millis() - time_now < 60000)
   {
     POLL();
-    
+
     if (NewData == true)
     {
       uint8_t Cmd0 = ReceivedBytes[1];
@@ -907,4 +932,3 @@ void CC2530::ZDO_STARTUP_FROM_APP()
     }
   }
 }
-
