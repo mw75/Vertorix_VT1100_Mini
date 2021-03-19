@@ -6,14 +6,15 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
-[![Documents][Docs-shield]][Docs-url]
 [![MIT License][license-shield]][license-url]
 
 <!-- Title -->
 # VT1100 Mini SPI
 
 <!-- Introduction -->
-This is the Arduino Library for the Vertorix VT1100 Mini.  The Vertorix VT1100 Mini is a low powered Zigbee development board compatible with the Arduino IDE.  
+This is the Arduino Library for the Vertorix VT1100 Mini.
+
+The Vertorix VT1100 Mini is a low powered IOT development board compatible with the Arduino IDE.  It contains a Ebyte E18-MS1 module and an Arduino compatible Atmega328P Microcontroller.  The E18-MS1 is based on the CC2530 chip by Texas Instruments and is FCC, CE and ROHS Certified.  The VT1100 Mini can be used to develop low powered IOT devices using the Arduino IDE and supports very low power sleep mode.
 
 <!-- PROJECT LOGO -->
 <!--
@@ -29,7 +30,7 @@ Place Logo here
 <!-- MOTIVATION -->
 ## Motivation
 
-This Repository shows you how to use the VT1100 Library with the Arduino IDE and provides example sketches.
+This Repository shows how to use the VT1100 Library with the Arduino IDE and provides example sketches.
 
 It is possible to upload the examples as Hex files directly to the boards without using the Arduino IDE.  See this Repository: [ArduinoSketchUploader](https://github.com/VertorixAU/ArduinoSketchUploader)
 
@@ -44,7 +45,7 @@ Follow the below instructions to run the example Arduino Sketches.
 * USB-to-TTL Serial Converter;
 * Arduino IDE - download [here](https://www.arduino.cc/en/main/software)
 
-### Connections
+### Programming
 
 The VT1100 was made without built in USB to keep the board compact.  A separate USB to TTL Serial converter must be used to upload sketches.  This is the same method as used with the Arduino Pro Mini Boards.  There are many online tutorials for connecting USB-to-TTL Serial Converters.   
 
@@ -54,33 +55,19 @@ USB-to-TTL Serial Converters:
 
 Disconnect any other power sources such as batteries from the VIN pin prior to connecting to the USB port of your computer.
 
-### Board Installation in Arduino IDE
+### Installing Vertorix Boards into the Arduino IDE
 
-Install the Vertorix Boards into the Arduino IDE.
-
-1. Open the Arduino IDE.  From the menu select:
-```sh
-File > Preferences > Additional Boards Manager URLs
-```
-Paste link:
-```sh
-https://raw.githubusercontent.com/VertorixAU/VertorixBoards/main/BoardManager/package_vertorix_index.json
-```
-2. Click OK and from the menu select:
-```sh
-Tools > Board > Board Manager
-```
-3. Use the search bar at the top to search for **Vertorix**;
-4. Click on Vertorix and then click Install.
+See this repository to install the Vertorix Boards into the Arduino IDE: [VertorixBoards](https://github.com/VertorixAU/VertorixBoards)
 
 ### Libraries
 
 #### Manually Install Libraries
 
-1. Copy the library **VT1100MiniSPI.h** and **VT1100MiniSPI.cpp** files to your Arduino "libraries" folder;
-2. Run the example sketches in the Arduino IDE.
+1. Create a new folder called **VT1100MiniSPI** in your Arduino "libraries" folder. Copy the **VT1100MiniSPI.h** and **VT1100MiniSPI.cpp** files to this folder;
+2. Install any other required libraries;
+3. Run the example sketches hosted in this repository in the Arduino IDE.
 
-#### Arduino IDE Library Installation
+#### Arduino IDE Library Installation (This feature is currently unavailable and is to be added in the future)
 
 1. Use the menu to select:
 ```sh
