@@ -9,7 +9,7 @@
 [![MIT License][license-shield]][license-url]
 
 <!-- Title -->
-# VT1100 Mini SPI
+# VT1100 Mini
 
 <!-- Introduction -->
 This is the Arduino Library for the Vertorix VT1100 Mini.
