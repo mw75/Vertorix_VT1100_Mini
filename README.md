@@ -64,10 +64,9 @@ See this repository to install the Vertorix Boards into the Arduino IDE: [Vertor
 #### Manually Install Libraries
 
 1. Create a new folder called **VT1100MiniSPI** in your Arduino "libraries" folder. Copy the **VT1100MiniSPI.h** and **VT1100MiniSPI.cpp** files to this folder;
-2. Install any other required libraries.  The VT1100_Z2M_DHT11 requires the DHT11 library and lowpower library by Rocketscream;
-3. Run the example sketches hosted in this repository in the Arduino IDE.
+2. Install any other required libraries.  The VT1100_Z2M_DHT11 Example requires the **DHT11** library and **lowpower** library by Rocketscream;
 
-#### Arduino IDE Library Installation (This feature is currently unavailable and is to be added in the future)
+#### Arduino IDE Library Installation
 
 1. Use the menu to select:
 ```sh
@@ -84,7 +83,7 @@ File > Examples > Select Library name > Select Example
 ```
 2. Open the **VT1100_SimpleReceive.ino** and **VT1100_SimpleSend.ino** Examples;
 3. Read through the Sketches to obtain a basic understanding of how they work;
-4. Set Digital Pin 2 (**D2**) LOW (GND) (this will Commission the CC2530 into the Network on power up).  Connect the two VT1100 boards to the computer using serial to USB converters.
+4. Set Digital Pin 2 (**D2**) LOW (GND) this will Commission the CC2530 into the Network on power up.  Connect the two VT1100 boards to the computer using serial to USB converters.
 5. Select the correct Board, Processor and Ports then Upload the Sketches;
 ```sh
 Tools > Board > Vertorix > "VT1100 Mini SPI"
