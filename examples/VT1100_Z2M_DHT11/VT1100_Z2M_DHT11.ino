@@ -1,6 +1,6 @@
 /*
     Example: VT1100DHT11
-    Description: A low powered Temperature and Humidity sensor which is designed to work with Zigbee2MQTT.
+    Description: A low powered Temperature and Humidity sensor example which is designed to work with Zigbee2MQTT.
     Please note this device is not Zigbee compliant.
 
     The device goes through the following loop sequence:
@@ -8,17 +8,6 @@
     2. Send data
     3. Sleep
 
-    Zigbee2MQTT Device Converters
-
-    File: devices.js
-  {
-    zigbeeModel: ['VT1100DHT11'],
-    model: 'VT1100',
-    vendor: 'Vertorix',
-    description: 'Vertorix Temperature & Humidity Sensor',
-    fromZigbee: [fz.temperature, fz.humidity],
-    toZigbee: [],
-  },
 */
 
 /* ------------------------------------------------------------------

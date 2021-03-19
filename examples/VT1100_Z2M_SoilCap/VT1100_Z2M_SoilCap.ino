@@ -1,40 +1,12 @@
 /*
     Example: VT1100SoilCap
-    Description: A low powered soil moisture sensor which is designed to work with Zigbee2MQTT.
+    Description: A low powered soil moisture sensor example which is designed to work with Zigbee2MQTT.
     Please note this device is not Zigbee compliant.
 
     The device goes through the following loop sequence:
     1. Take sensor readings
     2. Send data
     3. Sleep
-
-    Zigbee2MQTT Device Converters
-
-    File: devices.js
-  {
-    zigbeeModel: ['VT1100SoilCap'],
-    model: 'VT1100',
-    vendor: 'Vertorix',
-    description: 'Vertorix Capacitive Soil Moisture Sensor v1.2',
-    fromZigbee: [fz.soilmoisture],
-    toZigbee: [],
-  },
-
-  File: fromZigbee.js
-     soilmoisture: {
-        cluster: 'msRelativeHumidity',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const humidity = parseFloat(msg.data['measuredValue']) / 100.0;
-
-            // https://github.com/Koenkk/zigbee2mqtt/issues/798
-            // Sometimes the sensor publishes non-realistic vales, it should only publish message
-            // in the 0 - 100 range, don't produce messages beyond these values.
-            if (humidity >= 0 && humidity <= 100) {
-                return {soilmoisture: calibrateAndPrecisionRoundOptions(humidity, options, 'humidity')};
-            }
-        },
-    },
 */
 
 /* ------------------------------------------------------------------
