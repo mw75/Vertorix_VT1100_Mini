@@ -64,7 +64,7 @@ See this repository to install the Vertorix Boards into the Arduino IDE: [Vertor
 #### Manually Install Libraries
 
 1. Create a new folder called **VT1100MiniSPI** in your Arduino "libraries" folder. Copy the **VT1100MiniSPI.h** and **VT1100MiniSPI.cpp** files to this folder;
-2. Install any other required libraries;
+2. Install any other required libraries.  The VT1100_Z2M_DHT11 requires the DHT11 library and lowpower library by Rocketscream;
 3. Run the example sketches hosted in this repository in the Arduino IDE.
 
 #### Arduino IDE Library Installation (This feature is currently unavailable and is to be added in the future)
