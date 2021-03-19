@@ -1,13 +1,11 @@
 /*
-    Example: VT1100DHT11
-    Description: A low powered Temperature and Humidity sensor example which is designed to work with Zigbee2MQTT.
-    Please note this device is not Zigbee compliant.
+    Example: VT1100 DHT11
+    Description: A low powered Temperature and Humidity sensor example
 
     The device goes through the following loop sequence:
     1. Take sensor readings
     2. Send data
     3. Sleep
-
 */
 
 /* ------------------------------------------------------------------
@@ -255,7 +253,7 @@ void Poll(unsigned long WaitTime)
 }
 
 /* ------------------------------------------------------------------
-   Interview for Zigbee2MQTT
+   Interview
    ------------------------------------------------------------------
 */
 void Interview(unsigned long WaitTime)
@@ -275,7 +273,7 @@ void Interview(unsigned long WaitTime)
 
       if (ClusterID[0] == 0x00 && ClusterID[1] == 0x00)
       {
-        ZCL_Interview();                                              // Send ZCL Read attributes response.  This is used in the zigbee2mqtt interview process.
+        ZCL_Interview();                                              // Send ZCL Read attributes response.  This is used in the interview process.
       }
       mycc2530.LINK_QUALITY();                                        // Function prints the Short Address and Link Quality from a received message.  The link quality is from the last Hop to the receiving device.
     }

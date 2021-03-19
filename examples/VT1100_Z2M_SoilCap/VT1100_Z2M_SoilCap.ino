@@ -1,7 +1,6 @@
 /*
-    Example: VT1100SoilCap
-    Description: A low powered soil moisture sensor example which is designed to work with Zigbee2MQTT.
-    Please note this device is not Zigbee compliant.
+    Example: VT1100 Soil Cap
+    Description: A low powered soil moisture sensor example
 
     The device goes through the following loop sequence:
     1. Take sensor readings
@@ -275,7 +274,7 @@ void Poll(unsigned long WaitTime)
 }
 
 /* ------------------------------------------------------------------
-   Interview for Zigbee2MQTT
+   Interview
    ------------------------------------------------------------------
 */
 void Interview(unsigned long WaitTime)
@@ -295,7 +294,7 @@ void Interview(unsigned long WaitTime)
 
       if (ClusterID[0] == 0x00 && ClusterID[1] == 0x00)
       {
-        ZCL_Interview();                                              // Send ZCL Read attributes response.  This is used in the zigbee2mqtt interview process.
+        ZCL_Interview();                                              // Send ZCL Read attributes response.  This is used in the interview process.
       }
     }
   }
